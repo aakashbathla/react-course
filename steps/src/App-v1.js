@@ -14,6 +14,7 @@ export default function App() {
   function handleNext() {
     if (step < 3) {
       setStep((s) => s + 1);
+      setStep((s) => s + 1);
     }
   }
 
@@ -29,46 +30,26 @@ export default function App() {
             <div className={step >= 2 ? "active" : ""}>2</div>
             <div className={step >= 3 ? "active" : ""}>3</div>
           </div>
-          <StepMesasge step={step}>{messages[0]}</StepMesasge>
-
+          <p className="message">
+            Step {step}: {messages[step - 1]}
+          </p>
           <div className="buttons">
-            <Button
-              bgColor="#7950f2"
-              textColor="white"
-              handleEvent={handlePrevious}
+            <button
+              style={{ backgroundColor: "#7950f2", color: "#fff" }}
+              onClick={handlePrevious}
             >
-              <span className="emoji">👈</span> Prev
-            </Button>
-            <Button
-              bgColor="#7950f2"
-              textColor="white"
-              handleEvent={handleNext}
+              Prev
+            </button>
+            <button
+              onClick={handleNext}
+              style={{ backgroundColor: "#7950f2", color: "#fff" }}
             >
-              Next<span className="emoji">👉</span>
-            </Button>
+              Next
+            </button>
           </div>
         </div>
       )}
     </>
-  );
-}
-
-function Button({ textColor, bgColor, handleEvent, children }) {
-  return (
-    <button
-      onClick={handleEvent}
-      style={{ backgroundColor: `${bgColor}`, color: `${textColor}` }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function StepMesasge({ step, children }) {
-  return (
-    <div className="message">
-      <h3>Step {step}</h3>: {children}
-    </div>
   );
 }
 
