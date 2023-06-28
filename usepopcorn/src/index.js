@@ -2,11 +2,16 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
-
+// import StarRating from "./StarRating";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <App />
+    {/* <StarRating
+      maxRating={5}
+      messages={["Terrible", "Meh", "OK", "Good", "Great"]}
+      onSetRating={(rating) => console.log(rating)}
+    /> */}
   </React.StrictMode>
 );
 
@@ -38,3 +43,7 @@ root.render(
       </Main> */
 
 // using children is the proper way to do it
+
+// How react works
+
+// initial render/ mounted
