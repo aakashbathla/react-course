@@ -148,3 +148,7 @@ export default App;
 
 // we can create fake server by using json-server
 // if we pass a function to useState it will only be called once on initial render
+// do my state frequently changes, if not useReducer is better
+// useReducer is better for complex state
+// useReducer is better for performance
+// useReducer is better for testing
