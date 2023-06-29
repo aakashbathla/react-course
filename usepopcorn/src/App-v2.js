@@ -1,33 +1,56 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import StarRating from "./StarRating";
-import { useMovies } from "./useMovies";
-import { useLocalStorageState } from "./useLocalStorageState";
-import { useKey } from "./useKey";
+const tempMovieData = [
+  {
+    imdbID: "tt1375666",
+    Title: "Inception",
+    Year: "2010",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
+  },
+  {
+    imdbID: "tt0133093",
+    Title: "The Matrix",
+    Year: "1999",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg",
+  },
+  {
+    imdbID: "tt6751668",
+    Title: "Parasite",
+    Year: "2019",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg",
+  },
+];
+
+const tempWatchedData = [
+  {
+    imdbID: "tt1375666",
+    Title: "Inception",
+    Year: "2010",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
+    runtime: 148,
+    imdbRating: 8.8,
+    userRating: 10,
+  },
+  {
+    imdbID: "tt0088763",
+    Title: "Back to the Future",
+    Year: "1985",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BZmU0M2Y1OGUtZjIxNi00ZjBkLTg1MjgtOWIyNThiZWIwYjRiXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
+    runtime: 116,
+    imdbRating: 8.5,
+    userRating: 9,
+  },
+];
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
 function Search({ query, setQuery }) {
-  const inputEl = useRef(null);
-
-  useKey("Enter", () => {
-    if (document.activeElement === inputEl.current) return;
-    inputEl.current.focus();
-    setQuery("");
-  });
-
-  useEffect(() => {
-    function callback(e) {
-      if (e.code === "Enter") {
-        inputEl.current.focus();
-        setQuery("");
-      }
-    }
-
-    document.addEventListener("keydown", callback);
-    return () => document.removeEventListener("keydown", callback);
-  }, [setQuery]);
-
   return (
     <input
       className="search"
@@ -35,7 +58,6 @@ function Search({ query, setQuery }) {
       placeholder="Search movies..."
       value={query}
       onChange={(e) => setQuery(e.target.value)}
-      ref={inputEl}
     />
   );
 }
@@ -231,12 +253,6 @@ function SelectedMovie({ selectedId, onCloseMovie, onAddToWatched, watched }) {
   const [movie, setMovie] = useState({});
   const [isloading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState("");
-  const countRef = useRef(0);
-  useEffect(() => {
-    if (userRating === "") return;
-    countRef.current = countRef.current + 1;
-  }, [userRating]);
-
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
   const watchedUserrating = watched.find(
     (movie) => movie.imdbID === selectedId
@@ -254,14 +270,6 @@ function SelectedMovie({ selectedId, onCloseMovie, onAddToWatched, watched }) {
     Actors: actors,
   } = movie;
 
-  // but this one won't work
-  // const [isTop, setIsTop] = useState(imdbRating > 8);
-
-  // below one will work
-  // useEffect(() => {
-  //   setIsTop(imdbRating > 8);
-  // }, [imdbRating]);
-
   function handleAdd() {
     const newWatchedMovie = {
       imdbID: selectedId,
@@ -271,12 +279,27 @@ function SelectedMovie({ selectedId, onCloseMovie, onAddToWatched, watched }) {
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ")[0]),
       userRating: Number(userRating),
-      countRatingDecisions: countRef.current,
     };
     onAddToWatched(newWatchedMovie);
     onCloseMovie();
   }
-  useKey("Escape", onCloseMovie);
+
+  useEffect(() => {
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        onCloseMovie();
+      }
+    });
+
+    return function () {
+      document.removeEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          onCloseMovie();
+        }
+      });
+    };
+  }, [onCloseMovie]);
+
   useEffect(() => {
     async function getMovieDetails() {
       setIsLoading(true);
@@ -361,10 +384,11 @@ const KEY = "ac7de8e1";
 
 export default function App() {
   const [query, setQuery] = useState("");
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
-
-  // const [watched, setWatched] = useState([]);
-  const [watched, setWatched] = useLocalStorageState([], "watched");
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
@@ -374,19 +398,49 @@ export default function App() {
     setSelectedId(null);
   }
 
-  const { movies, isLoading, error } = useMovies(query);
-
   function handleAddToWatched(movie) {
     setWatched((watched) => [...watched, movie]);
-
-    // localStorage.setItem("watched", JSON.stringify([...watched, movie]));
   }
 
   function handleRemoveFromWatched(id) {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
 
-  useLocalStorageState(watched, "watched");
+  useEffect(() => {
+    const controller = new AbortController();
+    async function asyncFetch() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&S=${query}`,
+          { signal: controller.signal }
+        );
+        if (!res.ok)
+          throw new Error("Something went wrong with fetching movies");
+        const data = await res.json();
+        if (data.Response === "False") throw new Error(data.Error);
+        setMovies(data.Search);
+        setError(null);
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    if (query.length < 3) {
+      setMovies([]);
+      setError(null);
+      return;
+    }
+    handleCloseMovie();
+    asyncFetch();
+
+    return () => {
+      controller.abort();
+    };
+  }, [query]);
 
   return (
     <>
@@ -507,57 +561,3 @@ export default function App() {
 // enable easy reusing of non-visual logic: we can compose multiple hooks into our own custom hooks
 // only call hook at the top level of the functional component
 // only call hook from react functions
-
-//useState will take only the initial value it won't update it later on re-render
-// we can only update it by using the setter function
-// const [isTop, setIsTop] = useState(imdbRating > 8);
-// above will not work because at first it receives undefined and then it will always be false
-// we can also pass callback function in the useState
-// const [isTop, setIsTop] = useState(() => imdbRating > 8);
-// this will work because it will only be called once
-// const [watched, setWatched] = useState(function () {
-//   const savedWatched = localStorage.getItem("watched");
-//   if (savedWatched) {
-//     return JSON.parse(savedWatched);
-//   }
-//   return [];
-// });
-// useSte based on function (lazy evaluation)
-// function must be pure and accept no arguments. Called only on the initial render
-// we should not select dom elements directly in react
-// we should use useRef hook to select dom elements
-
-// ref -> box object with a mutable .current property that is
-// persistent across re-renders ("normal" variables get reset on every re-render)")
-// two big use cases:
-// 1. accessing dom elements
-// 2. storing mutable values that are persistent across re-renders (previousSate, setTimeout id, etc.)
-
-// Regs are for data that is not rendered: usuaylly only appear in event handlers
-// or effects, not in JSX (otherwise use state)
-// do not read write or read .current in render logic (like state)
-// difference between state and ref
-// state persist across re-renders
-// ref persist across re-renders
-// state updating causes re-render
-// ref updating does not cause re-render
-// state are immutable
-// ref are mutable
-// state udpates are async and batched
-// ref updates are sync and immediate
-// we cannot mutate the ref in the render function
-// we can mutate the ref in the event handler
-
-// reusing logic with custom hooks
-// if you need to use ui then use component
-// if you need to use logic that doesn't contain hooks then use regular function
-// if you need to use logic that contains hooks then use custom hook
-// custom hooks are just regular functions that use hooks
-// one custom hook should have one purpose, to make it reusable and portable
-// custom hooks should be named useSomething
-// custom hooks should not contain any jsx
-// custom hooks can have one or more hooks
-// they can receive and return any relevant data
-// with custom hook we only share logic not the jsx
-// we can also return a function from the custom hook
-// then we can call that function in nested component
