@@ -35,6 +35,18 @@
         "lng": 13.376933665713324
       },
       "id": 98443197
+    },
+    {
+      "cityName": "Khatanga",
+      "countryName": "Russian Federation (the)",
+      "emoji": "🇷🇺",
+      "date": "2023-07-30T10:13:20.928Z",
+      "notes": "",
+      "position": {
+        "lat": "70.78614950124401",
+        "lng": "98.30561882979515"
+      },
+      "id": 98443198
     }
   ]
 }

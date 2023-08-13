@@ -1,4 +1,4 @@
-import { Children, useState } from "react";
+import { useState } from "react";
 
 function SlowComponent() {
   // If this is too slow on your maching, reduce the `length`
@@ -18,16 +18,28 @@ function Counter({ children }) {
   const [count, setCount] = useState(0);
   return (
     <div>
+      <h1>Slow counter?!?</h1>
       <button onClick={() => setCount((c) => c + 1)}>Increase: {count}</button>
+
       {children}
     </div>
   );
 }
 
 export default function Test() {
+  // const [count, setCount] = useState(0);
+  // return (
+  //   <div>
+  //     <h1>Slow counter?!?</h1>
+  //     <button onClick={() => setCount((c) => c + 1)}>Increase: {count}</button>
+
+  //     <SlowComponent />
+  //   </div>
+  // );
+
   return (
     <div>
-      <h1>Slow Counter?!?</h1>
+      <h1>Slow counter?!?</h1>
       <Counter>
         <SlowComponent />
       </Counter>
