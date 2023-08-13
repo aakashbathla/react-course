@@ -1,4 +1,4 @@
-import { useContext, useReducer } from "react";
+import { useCallback, useContext, useReducer } from "react";
 import { createContext, useEffect } from "react";
 const BASE_URL = "http://localhost:8000";
 const CitiesContext = createContext();
@@ -60,22 +60,25 @@ function CitiesProvider({ children }) {
       );
   }, []);
 
-  function getCity(id) {
-    if (+id === +currentCity.id) return console.log("already loaded");
+  const getCity = useCallback(
+    function getCity(id) {
+      if (+id === +currentCity.id) return console.log("already loaded");
 
-    dispatch({ type: "loading" });
-    fetch(`${BASE_URL}/cities/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        dispatch({ type: "city/loaded", payload: data });
-      })
-      .catch((err) =>
-        dispatch({
-          type: "rejected",
-          payload: "there was an error loading the data",
+      dispatch({ type: "loading" });
+      fetch(`${BASE_URL}/cities/${id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          dispatch({ type: "city/loaded", payload: data });
         })
-      );
-  }
+        .catch((err) =>
+          dispatch({
+            type: "rejected",
+            payload: "there was an error loading the data",
+          })
+        );
+    },
+    [currentCity.id]
+  );
 
   function deleteCity(id) {
     dispatch({ type: "loading" });
